@@ -1,1 +1,0 @@
-# AI-based-contract-clause-analyzer
