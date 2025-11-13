@@ -5,7 +5,7 @@ import { asyncHandler } from "../utils/asyncHandler.js"
 
 export const verifyJWT = asyncHandler(async (req,_,next )=>{
     const token = req.cookies.accessToken || req.header
-    ("Authorisation")?.replace("Bearer ", "")
+    ("Authorization")?.replace("Bearer ", "")
 
     if(!token){
         throw new apiError(401, "Unauthorised")
@@ -15,7 +15,7 @@ export const verifyJWT = asyncHandler(async (req,_,next )=>{
         const user = await User.findById(decodedToken?._id).select("-password -refreshToken")
 
         if(!user){
-            throw new apiError(401, "Unauthorised")
+            throw new apiError(401, "Unauthorized")
         }
         req.user = user
         next()

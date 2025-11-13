@@ -53,10 +53,10 @@ const deleteFromCloudinary = async (publicId) => {
             resource_type: "raw", //  specify "raw" since PDFs are non-image files
         });
 
-        console.log("🗑️ Deleted from Cloudinary:", publicId);
+        console.log("Deleted from Cloudinary:", publicId);
         return result;
     } catch (error) {
-        console.error("❌ Error deleting from Cloudinary:", error);
+        console.error("Error deleting from Cloudinary:", error);
         return null;
     }
 };
