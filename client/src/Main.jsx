@@ -3,10 +3,10 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import App from './App.jsx';
-import Login from './Login.jsx';
-import Register from './Register.jsx';
-import Dashboard from './Dashboard.jsx';
-import Upload from './Uploads.jsx';
+import Login from './components/Login.jsx';
+import Register from './components/Register.jsx';
+import Dashboard from './components/Dashboard.jsx';
+import Upload from './components/Uploads.jsx';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

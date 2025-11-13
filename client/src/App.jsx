@@ -7,10 +7,10 @@ function App() {
     <div>
       <h1>Contract Analyzer</h1>
       <nav>
-        <Link to="pages/Login">Login</Link> | 
-        <Link to="pages/Register">Register</Link> | 
-        <Link to="pages/Dashboard">Dashboard</Link> | 
-        <Link to="pages/Uploads">Upload</Link>
+        <Link to="/login">Login</Link> |
+        <Link to="/register">Register</Link> |
+        <Link to="/dashboard">Dashboard</Link> |
+        <Link to="/upload">Upload</Link>
       </nav>
     </div>
   );
