@@ -1,0 +1,162 @@
+import mongoose from "mongoose";
+import { Contract } from "../models/contract.models.js";
+import { apiError } from "../utils/apiError.js";
+import { apiResponse } from "../utils/apiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
+import { AuditLog } from "../models/auditLog.models.js";
+import { Notification } from "../models/notification.models.js";
+
+
+
+const uploadContract = asyncHandler(async (req, res) => {
+    const userId = req.user._id;
+
+    if (!req.file) {
+        throw new apiError(400, "Contract file is required");
+    }
+
+    const uploadResult = await uploadOnCloudinary(req.file.path);
+
+    if (!uploadResult?.secure_url) {
+        throw new apiError(500, "Failed to upload contract to Cloudinary");
+    }
+
+    const contract = await Contract.create({
+        uploadedBy: userId,
+        fileName: req.file.originalname,
+        filePath: req.file.path,
+        cloudinaryUrl: uploadResult.secure_url,
+        cloudinaryPublicId: uploadResult.public_id,
+        status: "uploaded",
+        uploadedAt: new Date()
+    });
+
+    // Create an audit log
+    await AuditLog.create({
+        userId,
+        action: "upload",
+        details: `Uploaded contract ${contract.fileName}`,
+        timestamp: new Date()
+    });
+
+    // Notification
+    await Notification.create({
+        userId,
+        contractId: contract._id,
+        message: "Your contract has been uploaded and is ready for analysis.",
+        createdAt: new Date(),
+        isRead: false
+    });
+
+    return res
+        .status(201)
+        .json(new apiResponse(201, contract, "Contract uploaded successfully"));
+});
+
+
+
+const getUserContracts = asyncHandler(async (req, res) => {
+    const userId = new mongoose.Types.ObjectId(req.user._id);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const pipeline = [
+        { $match: { uploadedBy: userId } },
+        { $sort: { uploadedAt: -1 } },
+        {
+            $facet: {
+                metadata: [{ $count: "total" }],
+                data: [{ $skip: skip }, { $limit: limit }]
+            }
+        }
+    ];
+
+    const result = await Contract.aggregate(pipeline);
+
+    const total = result[0].metadata[0]?.total || 0;
+    const contracts = result[0].data;
+
+    return res.status(200).json(
+        new apiResponse(200, {
+            total,
+            page,
+            totalPages: Math.ceil(total / limit),
+            contracts
+        }, "User contracts fetched successfully")
+    );
+});
+
+
+const getContractById = asyncHandler(async (req, res) => {
+    const contractId = new mongoose.Types.ObjectId(req.params.id);
+
+    const pipeline = [
+        { $match: { _id: contractId } },
+        {
+            $lookup: {
+                from: "users",
+                localField: "uploadedBy",
+                foreignField: "_id",
+                as: "uploadedByUser"
+            }
+        },
+        { $unwind: "$uploadedByUser" },
+        {
+            $project: {
+                fileName: 1,
+                cloudinaryUrl: 1,
+                status: 1,
+                uploadedAt: 1,
+                "uploadedByUser.username": 1,
+                "uploadedByUser.email": 1
+            }
+        }
+    ];
+
+    const result = await Contract.aggregate(pipeline);
+
+    if (result.length === 0) {
+        throw new apiError(404, "Contract not found");
+    }
+
+    return res.status(200).json(
+        new apiResponse(200, result[0], "Contract details fetched successfully")
+    );
+});
+
+
+
+const deleteContract = asyncHandler(async (req, res) => {
+    const contractId = req.params.id;
+
+    const contract = await Contract.findById(contractId);
+    if (!contract) throw new apiError(404, "Contract not found");
+
+    // Delete from Cloudinary
+    if (contract.cloudinaryPublicId) {
+        await deleteFromCloudinary(contract.cloudinaryPublicId);
+    }
+
+    await contract.deleteOne();
+
+    // Log
+    await AuditLog.create({
+        userId: req.user._id,
+        action: "delete",
+        details: `Deleted contract ${contract.fileName}`,
+        timestamp: new Date()
+    });
+
+    return res
+        .status(200)
+        .json(new apiResponse(200, {}, "Contract deleted successfully"));
+});
+
+export {
+    uploadContract,
+    getUserContracts,
+    getContractById,
+    deleteContract
+};

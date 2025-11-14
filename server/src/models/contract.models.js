@@ -1,44 +1,52 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose from "mongoose";
 import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
 
-const contractSchema = new Schema(
+const contractSchema = new mongoose.Schema(
   {
     uploadedBy: {
-      type: Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
+
     fileName: {
       type: String,
       required: true,
-      trim: true,
     },
+
     filePath: {
-      type: String, // local file path or fallback path
+      type: String,
       required: true,
     },
+
     cloudinaryUrl: {
-      type: String, // hosted file URL on Cloudinary
-      default: "",
+      type: String,
+      default: null,
     },
+
     cloudinaryPublicId: {
-      type: String, // used for deleting/updating the file on Cloudinary
-      default: "",
+      type: String,
+      default: null,
     },
+
     status: {
       type: String,
       enum: ["uploaded", "processing", "completed", "failed"],
       default: "uploaded",
     },
+
     uploadedAt: {
       type: Date,
       default: Date.now,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true, // adds createdAt, updatedAt
+  }
 );
 
-// Optional plugin for pagination or aggregation queries
+// Add pagination plugin
 contractSchema.plugin(mongooseAggregatePaginate);
 
+// Export model
 export const Contract = mongoose.model("Contract", contractSchema);
