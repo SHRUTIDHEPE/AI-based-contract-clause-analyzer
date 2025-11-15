@@ -7,7 +7,7 @@ import {
   getUserContracts,
   deleteContract,
   getContractById,
-} from "../controllers/contract.controller.js";
+} from "../controllers/contract.controllers.js";
 
 const router = Router();
 
