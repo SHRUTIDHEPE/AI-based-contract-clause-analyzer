@@ -90,7 +90,7 @@ const getUserContracts = asyncHandler(async (req, res) => {
 
 
 const getContractById = asyncHandler(async (req, res) => {
-    const contractId = new mongoose.Types.ObjectId(req.params.id);
+    const contractId = new mongoose.Types.ObjectId(req.params.contractId);
 
     const pipeline = [
         { $match: { _id: contractId } },
@@ -129,7 +129,7 @@ const getContractById = asyncHandler(async (req, res) => {
 
 
 const deleteContract = asyncHandler(async (req, res) => {
-    const contractId = req.params.id;
+    const contractId = req.params.contractId;
 
     const contract = await Contract.findById(contractId);
     if (!contract) throw new apiError(404, "Contract not found");
