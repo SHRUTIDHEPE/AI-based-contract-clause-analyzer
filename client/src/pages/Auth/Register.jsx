@@ -11,8 +11,12 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await register(data);
-    window.location.href = "/login";
+    try {
+      await register(data);
+      window.location.href = "/login";
+    } catch (error) {
+      alert(error.response?.data?.message || "Registration failed");
+    }
   };
 
   return (

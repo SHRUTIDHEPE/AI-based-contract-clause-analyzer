@@ -8,10 +8,14 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const res = await login(data);
-    localStorage.setItem("token", res.data.token);
-    setUser(res.data.user);
-    window.location.href = "/";
+    try {
+      const res = await login(data);
+      localStorage.setItem("token", res.data.data.accessToken);
+      setUser(res.data.data.user);
+      window.location.href = "/";
+    } catch (error) {
+      alert(error.response?.data?.message || "Login failed");
+    }
   };
 
   return (

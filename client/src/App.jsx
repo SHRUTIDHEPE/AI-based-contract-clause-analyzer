@@ -14,9 +14,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-
-        
-        
+        {/* Public routes WITHOUT sidebar */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
         {/* Protected routes WITH sidebar */}
         <Route element={<MainLayout />}>
@@ -27,8 +27,6 @@ export default function App() {
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/audit" element={<AuditLogs />} />
-          <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
         </Route>
 
       </Routes>
