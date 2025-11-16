@@ -6,12 +6,25 @@ const app = express();
 
 
 
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",")
+  : ["http://localhost:3000"]; // default for local dev
+
 app.use(
-    cors({
-        origin: process.env.CORS_ORIGIN,
-        credentials: true
-    })
-)
+  cors({
+    origin: function (origin, callback) {
+      // allow requests with no origin (e.g., mobile apps, curl, Postman)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        return callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true, // allow cookies & authorization headers
+  })
+);
 
 // common middleware
 app.use(express.json({limit:"16kb"}))

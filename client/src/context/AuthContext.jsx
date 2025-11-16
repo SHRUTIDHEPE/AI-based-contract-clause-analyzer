@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect } from "react";
-import { getProfile } from "../api/auth";
+import { getCurrentUser } from "../api/auth";
 
 export const AuthContext = createContext();
 
@@ -8,8 +8,8 @@ export const AuthProvider = ({ children }) => {
 
   const loadUser = async () => {
     try {
-      const res = await getProfile();
-      setUser(res.data.user);
+      const res = await getCurrentUser();
+      setUser(res.data.data);
     } catch {
       setUser(null);
     }
