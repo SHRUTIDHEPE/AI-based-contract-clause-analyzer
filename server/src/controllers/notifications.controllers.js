@@ -1,11 +1,11 @@
 import { Notification } from "../models/notification.models.js";
-import asyncHandler from "../utils/asyncHandler.js";
-import apiResponse from "../utils/apiResponse.js";
-import apiError from "../utils/apiError.js";
+import {asyncHandler} from "../utils/asyncHandler.js";
+import {apiResponse} from "../utils/apiResponse.js";
+import {apiError} from "../utils/apiError.js";
 
 
 // Get paginated notifications for the logged-in user
-export const getNotifications = asyncHandler(async (req, res) => {
+ const getNotifications = asyncHandler(async (req, res) => {
   const userId = req.user._id;
 
   const page = parseInt(req.query.page) || 1;
@@ -31,7 +31,7 @@ export const getNotifications = asyncHandler(async (req, res) => {
 
 
 // Mark a single notification as read
-export const markNotificationRead = asyncHandler(async (req, res) => {
+ const markNotificationRead = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   const notif = await Notification.findByIdAndUpdate(
@@ -49,7 +49,7 @@ export const markNotificationRead = asyncHandler(async (req, res) => {
 
 
 // Mark all notifications as read
-export const markAllNotificationsRead = asyncHandler(async (req, res) => {
+ const markAllNotificationsRead = asyncHandler(async (req, res) => {
   const userId = req.user._id;
 
   await Notification.updateMany({ userId, isRead: false }, { isRead: true });
@@ -61,7 +61,7 @@ export const markAllNotificationsRead = asyncHandler(async (req, res) => {
 
 
 // Delete a notification
-export const deleteNotification = asyncHandler(async (req, res) => {
+ const deleteNotification = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   const deleted = await Notification.findByIdAndDelete(id);
@@ -75,7 +75,7 @@ export const deleteNotification = asyncHandler(async (req, res) => {
 
 
 // Get unread count
-export const getUnreadCount = asyncHandler(async (req, res) => {
+ const getUnreadCount = asyncHandler(async (req, res) => {
   const userId = req.user._id;
 
   const count = await Notification.countDocuments({
@@ -87,3 +87,11 @@ export const getUnreadCount = asyncHandler(async (req, res) => {
     .status(200)
     .json(new apiResponse(200, { count }, "Unread count fetched"));
 });
+
+export {
+  getNotifications,
+  markNotificationRead,
+  markAllNotificationsRead,
+  deleteNotification,
+  getUnreadCount,
+}
