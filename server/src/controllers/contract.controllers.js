@@ -4,11 +4,13 @@ import { apiError } from "../utils/apiError.js";
 import { apiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
-import { AuditLog } from "../models/auditLog.models.js";
 import { Notification } from "../models/notification.models.js";
+import { createAuditLog } from "../services/auditlog.service.js";   // 🔥 unified audit log
+  
 
-
-
+// =============================
+// Upload Contract
+// =============================
 const uploadContract = asyncHandler(async (req, res) => {
     const userId = req.user._id;
 
@@ -32,15 +34,14 @@ const uploadContract = asyncHandler(async (req, res) => {
         uploadedAt: new Date()
     });
 
-    // Create an audit log
-    await AuditLog.create({
+    //  AUDIT LOG
+    await createAuditLog({
         userId,
         action: "upload",
-        details: `Uploaded contract ${contract.fileName}`,
-        timestamp: new Date()
+        details: `Uploaded contract ${contract.fileName}`
     });
 
-    // Notification
+    //  Notification
     await Notification.create({
         userId,
         contractId: contract._id,
@@ -55,7 +56,9 @@ const uploadContract = asyncHandler(async (req, res) => {
 });
 
 
-
+// =============================
+// Get User Contracts (Paginated)
+// =============================
 const getUserContracts = asyncHandler(async (req, res) => {
     const userId = new mongoose.Types.ObjectId(req.user._id);
     const page = parseInt(req.query.page) || 1;
@@ -89,6 +92,9 @@ const getUserContracts = asyncHandler(async (req, res) => {
 });
 
 
+// =============================
+// Get Contract by ID
+// =============================
 const getContractById = asyncHandler(async (req, res) => {
     const contractId = new mongoose.Types.ObjectId(req.params.contractId);
 
@@ -121,32 +127,40 @@ const getContractById = asyncHandler(async (req, res) => {
         throw new apiError(404, "Contract not found");
     }
 
+    //  AUDIT LOG (view contract)
+    await createAuditLog({
+        userId: req.user._id,
+        action: "view_report",
+        details: `Viewed contract details for ${req.params.contractId}`
+    });
+
     return res.status(200).json(
         new apiResponse(200, result[0], "Contract details fetched successfully")
     );
 });
 
 
-
+// =============================
+// Delete Contract
+// =============================
 const deleteContract = asyncHandler(async (req, res) => {
     const contractId = req.params.contractId;
 
     const contract = await Contract.findById(contractId);
     if (!contract) throw new apiError(404, "Contract not found");
 
-    // Delete from Cloudinary
+    // Delete file from Cloudinary
     if (contract.cloudinaryPublicId) {
         await deleteFromCloudinary(contract.cloudinaryPublicId);
     }
 
     await contract.deleteOne();
 
-    // Log
-    await AuditLog.create({
+    //  AUDIT LOG
+    await createAuditLog({
         userId: req.user._id,
         action: "delete",
-        details: `Deleted contract ${contract.fileName}`,
-        timestamp: new Date()
+        details: `Deleted contract ${contract.fileName}`
     });
 
     return res
