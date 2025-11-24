@@ -51,11 +51,7 @@ const registerUser = asyncHandler(async (req, res) => {
   );
 
   //  AUDIT LOG
-  await createAuditLog({
-    userId: user._id,
-    action: "upload",
-    details: "New user registered"
-  });
+  await createAuditLog(user._id, "upload", `Username ${user.username} registered`);
 
   return res
     .status(201)
@@ -100,11 +96,7 @@ const loginUser = asyncHandler(async (req, res) => {
   );
 
   //  AUDIT LOG
-  await createAuditLog({
-    userId: user._id,
-    action: "login",
-    details: "User logged in successfully"
-  });
+  await createAuditLog(user._id, "login", `Username ${user.username} logged in successfully`);
 
   return res
     .status(200)
@@ -144,12 +136,8 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       secure: process.env.NODE_ENV === "production",
     };
 
-    //  AUDIT LOG
-    await createAuditLog({
-      userId: user._id,
-      action: "login",
-      details: "Access token refreshed"
-    });
+  //  AUDIT LOG
+  await createAuditLog(user._id, "login", `Username ${user.username} refreshed access token`);
 
     return res
       .status(200)
@@ -181,11 +169,11 @@ const logoutUser = asyncHandler(async (req, res) => {
   };
 
   //  AUDIT LOG
-  await createAuditLog({
-    userId: req.user._id,
-    action: "login",
-    details: "User logged out"
-  });
+  // To get username for req.user._id, we need to fetch user here
+  {
+    const currentUser = await User.findById(req.user._id);
+    await createAuditLog(req.user._id, "login", `Username ${currentUser?.username || "unknown"} logged out`);
+  }
 
   return res
     .status(200)
@@ -211,11 +199,10 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
   await user.save({ validateBeforeSave: false });
 
   //  AUDIT LOG
-  await createAuditLog({
-    userId: req.user._id,
-    action: "upload",
-    details: "User changed password"
-  });
+  {
+    const currentUser = await User.findById(req.user._id);
+    await createAuditLog(req.user._id, "upload", `Username ${currentUser?.username || "unknown"} changed password`);
+  }
 
   return res
     .status(200)
@@ -243,11 +230,10 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
   ).select("-password -refreshToken");
 
   //  AUDIT LOG
-  await createAuditLog({
-    userId: req.user._id,
-    action: "upload",
-    details: "User updated profile details"
-  });
+  {
+    const currentUser = await User.findById(req.user._id);
+    await createAuditLog(req.user._id, "upload", `Username ${currentUser?.username || "unknown"} updated profile details`);
+  }
 
   return res
     .status(200)
@@ -313,11 +299,10 @@ const deleteUserContract = asyncHandler(async (req, res) => {
   ]);
 
   //  AUDIT LOG
-  await createAuditLog({
-    userId,
-    action: "delete",
-    details: `Contract ${contractId} deleted`
-  });
+  {
+    const currentUser = await User.findById(userId);
+    await createAuditLog(userId, "delete", `Username ${currentUser?.username || "unknown"} deleted contract ${contractId}`);
+  }
 
   return res
     .status(200)
