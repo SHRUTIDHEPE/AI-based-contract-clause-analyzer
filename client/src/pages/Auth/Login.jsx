@@ -30,10 +30,9 @@ export default function Login() {
         username: formData.identifier,
         password: formData.password,
       });
-      const { accessToken, user } = response.data.data;
+      const { user } = response.data.data;
 
       // Store token for API requests and set user in context
-      localStorage.setItem("token", accessToken);
       setUser(user);
 
       // Redirect to dashboard or home page

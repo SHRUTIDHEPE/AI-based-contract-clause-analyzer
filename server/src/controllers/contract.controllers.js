@@ -14,15 +14,11 @@ import { createAuditLog } from "../services/auditlog.service.js";   // 🔥 unif
 const uploadContract = asyncHandler(async (req, res) => {
     const userId = req.user._id;
 
-    //console.log("Debug: req.file =", req.file);
-
     if (!req.file) {
         throw new apiError(400, "Contract file is required");
     }
 
     const uploadResult = await uploadOnCloudinary(req.file.path);
-
-    //console.log("Debug: uploadResult =", uploadResult);
 
     if (!uploadResult?.secure_url) {
         throw new apiError(500, "Failed to upload contract to Cloudinary");
@@ -50,9 +46,17 @@ const uploadContract = asyncHandler(async (req, res) => {
         isRead: false
     });
 
+    // Only send non-sensitive contract info in response
+    const safeContract = {
+        id: contract._id,
+        fileName: contract.fileName,
+        status: contract.status,
+        uploadedAt: contract.uploadedAt
+    };
+
     return res
         .status(201)
-        .json(new apiResponse(201, contract, "Contract uploaded successfully"));
+        .json(new apiResponse(201, safeContract, "Contract uploaded successfully"));
 });
 
 
