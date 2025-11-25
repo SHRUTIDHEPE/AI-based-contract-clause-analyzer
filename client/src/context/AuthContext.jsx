@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect } from "react";
-import { getCurrentUser } from "../api/auth";
+import { getCurrentUser, logout as logoutApi } from "../api/auth";
 
 export const AuthContext = createContext();
 
@@ -9,7 +9,7 @@ export const AuthProvider = ({ children }) => {
   const loadUser = async () => {
     try {
       const res = await getCurrentUser();
-      setUser(res.data.data);
+      setUser(res.data.data.user); // ✅ IMPORTANT FIX
     } catch {
       setUser(null);
     }
@@ -19,8 +19,17 @@ export const AuthProvider = ({ children }) => {
     loadUser();
   }, []);
 
+  const logout = async () => {
+    try {
+      await logoutApi(); // backend clears cookies
+      setUser(null);
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, setUser }}>
+    <AuthContext.Provider value={{ user, setUser, logout }}>
       {children}
     </AuthContext.Provider>
   );
