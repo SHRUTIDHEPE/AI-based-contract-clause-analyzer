@@ -14,11 +14,15 @@ import { createAuditLog } from "../services/auditlog.service.js";   // 🔥 unif
 const uploadContract = asyncHandler(async (req, res) => {
     const userId = req.user._id;
 
+    //console.log("Debug: req.file =", req.file);
+
     if (!req.file) {
         throw new apiError(400, "Contract file is required");
     }
 
     const uploadResult = await uploadOnCloudinary(req.file.path);
+
+    //console.log("Debug: uploadResult =", uploadResult);
 
     if (!uploadResult?.secure_url) {
         throw new apiError(500, "Failed to upload contract to Cloudinary");
@@ -35,11 +39,7 @@ const uploadContract = asyncHandler(async (req, res) => {
     });
 
     //  AUDIT LOG
-    await createAuditLog({
-        userId,
-        action: "upload",
-        details: `Uploaded contract ${contract.fileName}`
-    });
+    await createAuditLog(userId, "upload", `Uploaded contract ${contract.fileName}`);
 
     //  Notification
     await Notification.create({

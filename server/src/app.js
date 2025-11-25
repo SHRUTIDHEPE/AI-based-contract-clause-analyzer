@@ -10,11 +10,18 @@ const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(",")
   : ["http://localhost:3000"]; // default for local dev
 
+console.log("Allowed CORS origins:", allowedOrigins);
+
 app.use(
   cors({
     origin: function (origin, callback) {
       // allow requests with no origin (e.g., mobile apps, curl, Postman)
       if (!origin) return callback(null, true);
+
+      // Allow all localhost origins for dev convenience
+      if (origin.startsWith("http://localhost")) {
+        return callback(null, true);
+      }
 
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
