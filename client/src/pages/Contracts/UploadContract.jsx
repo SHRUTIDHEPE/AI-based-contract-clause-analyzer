@@ -6,7 +6,7 @@ export default function UploadContract() {
 
   const upload = async () => {
     const fd = new FormData();
-    fd.append("file", file);
+    fd.append("contractFile", file);
     await uploadContract(fd);
     alert("Uploaded!");
   };
