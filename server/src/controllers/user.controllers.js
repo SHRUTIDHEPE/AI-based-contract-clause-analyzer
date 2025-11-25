@@ -103,7 +103,7 @@ const loginUser = asyncHandler(async (req, res) => {
     .cookie("accessToken", accessToken, options)
     .cookie("refreshToken", refreshToken, options)
     .json(
-      new apiResponse(200, { user: loggedInUser, accessToken, refreshToken }, "Login successful")
+      new apiResponse(200, { user: loggedInUser }, "Login successful")
     );
 });
 
@@ -139,14 +139,14 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   //  AUDIT LOG
   await createAuditLog(user._id, "login", `Username ${user.username} refreshed access token`);
 
-    return res
+  return res
       .status(200)
       .cookie("accessToken", accessToken, options)
       .cookie("refreshToken", refreshToken, options)
       .json(
         new apiResponse(
           200,
-          { accessToken, refreshToken },
+          {},
           "Access token refreshed successfully"
         )
       );

@@ -21,7 +21,7 @@ const uploadOnCloudinary = async (localFilePath) => {
             folder: "majorproj", //  optional: keeps your uploads organized
         });
 
-        console.log(" File uploaded to Cloudinary:", response.url);
+        //console.log(" File uploaded to Cloudinary:", response.url);
 
         // safely remove local file after successful upload
         if (fs.existsSync(localFilePath)) {
