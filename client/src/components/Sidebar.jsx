@@ -8,6 +8,8 @@ export default function Sidebar() {
       <Link to="/contracts">My Contracts</Link>
       <Link to="/notifications">Notifications</Link>
       <Link to="/profile">Profile</Link>
+      <Link to="/login">Login</Link>
+      <Link to="/register">Register</Link>
       <Link to="/audit">Audit Logs</Link>
     </aside>
   );
