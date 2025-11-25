@@ -51,7 +51,7 @@ const registerUser = asyncHandler(async (req, res) => {
   );
 
   //  AUDIT LOG
-  await createAuditLog(user._id, "upload", `Username ${user.username} registered`);
+  await createAuditLog(user._id, "register", `Username ${user.username} registered`);
 
   return res
     .status(201)
@@ -201,7 +201,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
   //  AUDIT LOG
   {
     const currentUser = await User.findById(req.user._id);
-    await createAuditLog(req.user._id, "upload", `Username ${currentUser?.username || "unknown"} changed password`);
+    await createAuditLog(req.user._id, "change_password", `Username ${currentUser?.username || "unknown"} changed password`);
   }
 
   return res
@@ -232,7 +232,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
   //  AUDIT LOG
   {
     const currentUser = await User.findById(req.user._id);
-    await createAuditLog(req.user._id, "upload", `Username ${currentUser?.username || "unknown"} updated profile details`);
+    await createAuditLog(req.user._id, "update_profile", `Username ${currentUser?.username || "unknown"} updated profile details`);
   }
 
   return res
