@@ -1,11 +1,21 @@
 import Sidebar from "../components/Sidebar";
-import { Outlet } from "react-router-dom";
+import { Outlet, Navigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function MainLayout() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <div>Loading...</div>; // Or a spinner component
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+
   return (
     <div className="flex">
       <Sidebar />
-
       <main className="ml-64 w-full min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 p-10">
         <div className="max-w-7xl mx-auto">
           <Outlet />
