@@ -1,5 +1,5 @@
 /* Modern, minimal CSS theme for ClauseSight - responsive and presentation-ready */
-
+@import "tailwindcss";
 :root{
   --bg: #0f1724;
   --card: #0b1220;

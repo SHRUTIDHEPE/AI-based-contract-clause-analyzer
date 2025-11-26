@@ -7,3 +7,5 @@ export const logout = () => axios.post("/users/logout");
 export const changePassword = (data) => axios.post("/users/change-password", data);
 export const getCurrentUser = () => axios.get("/users/current-user");
 export const updateAccount = (data) => axios.patch("/users/update-account", data);
+export const getAccountDetails = (username) => axios.get(`/users/c/${username}`);
+export const deleteContract = (contractId) => axios.delete(`/users/contracts/${contractId}`);

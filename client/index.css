@@ -1,12 +1,12 @@
-@tailwind base;
+/* @tailwind base;
 @tailwind components;
-@tailwind utilities;
+@tailwind utilities; */
 
 /* smooth UI */
-* {
+/* * {
   @apply transition-all duration-200;
-}
+} */
 
-body {
+/* body {
   @apply bg-gray-100 text-gray-800 antialiased;
-}
+} */
