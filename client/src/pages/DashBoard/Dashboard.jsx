@@ -37,7 +37,7 @@ export default function Dashboard() {
         {/* Placeholder Stats */}
         <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition">
           <p className="text-sm text-gray-500">Total Contracts</p>
-          <h3 className="text-2xl font-semibold mt-2">128</h3>
+          <h3 className="text-2xl font-semibold mt-2 text-gray-500">128</h3>
         </div>
         <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition">
           <p className="text-sm text-gray-500">High Risk</p>
@@ -56,7 +56,7 @@ export default function Dashboard() {
       {/* Large Panels */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
         <div className="bg-white shadow rounded-xl p-6">
-          <h3 className="text-xl font-semibold mb-3">Recent Uploaded Contracts</h3>
+          <h3 className="text-xl from-neutral-700 text-gray-500">Recent Uploaded Contracts</h3>
           <div className="space-y-3">
             {loading && <p>Loading...</p>}
             {error && <p className="text-red-500">{error}</p>}
@@ -70,12 +70,12 @@ export default function Dashboard() {
                     {c.fileName}
                   </Link>
                 ))
-              : !loading && <p>No recent contracts found.</p>}
+              : !loading && <p className="text-gray-500">No recent contracts found.</p>}
           </div>
         </div>
 
         <div className="bg-white shadow rounded-xl p-6">
-          <h3 className="text-xl font-semibold mb-3">Risk Overview</h3>
+          <h3 className="text-xl from-neutral-700 text-gray-500">Risk Overview</h3>
           <div className="h-48 flex items-center justify-center text-gray-400">
             <p>Chart Placeholder</p>
           </div>
