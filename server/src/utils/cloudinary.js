@@ -30,7 +30,7 @@ const uploadOnCloudinary = async (localFilePath) => {
 
         return response;
     } catch (error) {
-        console.error("❌ Cloudinary upload error:", error);
+        console.error("Cloudinary upload error:", error);
 
         // delete local file safely even if upload fails
         if (fs.existsSync(localFilePath)) {
