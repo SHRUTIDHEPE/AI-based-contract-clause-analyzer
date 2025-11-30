@@ -12,7 +12,7 @@ const auditLogSchema = new mongoose.Schema(
     action: {
       type: String,
       required: true,
-      enum: ["upload", "analyse", "view_report", "login", "delete"],
+      enum: ["upload", "analyse", "view_report", "login", "delete", "register"],
     },
     details: {
       type: String,
