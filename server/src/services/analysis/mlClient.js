@@ -27,7 +27,7 @@ async function predictBatch(texts) {
     );
     return res.data.results; // [ { label, probabilities }, ... ]
   } catch (err) {
-    console.error("❌ ML predictBatch() error:", err.message);
+    console.error(" ML predictBatch() error:", err.message);
     return null;
   }
 }

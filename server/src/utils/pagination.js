@@ -1,5 +1,5 @@
 // server/src/utils/pagination.js
-
+//pagination helper
 function buildPagination(items, { page = 1, limit = 10 }) {
   page = Math.max(parseInt(page, 10) || 1, 1);
   limit = Math.max(parseInt(limit, 10) || 10, 1);
