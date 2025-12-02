@@ -57,6 +57,8 @@ app.use("/api/v1/users", userRouter)
 app.use("/api/v1/contracts", contractRouter)
 app.use("/api/v1/notifications", notificationRouter)
 app.use("/api/v1/auditlogs", auditLogRouter)
+app.use("/api/analysis", require("./routes/analysis.routes"));
+
 
 app.use(errorHandler)
 
