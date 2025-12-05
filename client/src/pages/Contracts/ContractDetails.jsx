@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { getContractDetails } from "../../api/contracts";
-import { getAnalysis, runAnalysis } from "../../api/analysis";
+import { getAnalysis, runAnalysis, getAnalysisByContract } from "../../api/analysis";
 import AnalysisReport from "../../components/AnalysisReport";
 
 export default function ContractDetails() {
@@ -21,7 +21,7 @@ export default function ContractDetails() {
       setContract(fetchedContract);
 
       if (fetchedContract.status === "completed") {
-        const analysisRes = await getAnalysis(id);
+        const analysisRes = await getAnalysisByContract(id);
         setAnalysis(analysisRes.data.data);
       }
     } catch (err) {
@@ -60,7 +60,7 @@ export default function ContractDetails() {
   if (!contract) return <div>Contract not found.</div>;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100vh-100px)]">
+    <div className={`grid gap-8 h-[calc(100vh-100px)] ${analysis ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
       {/* PDF Viewer */}
       <div className="w-full h-full bg-gray-100 rounded-lg shadow-inner">
         {contract.cloudinaryUrl ? (
@@ -80,40 +80,48 @@ export default function ContractDetails() {
         )}
       </div>
 
-      {/* Details and Analysis */}
-      <div className="bg-white p-6 rounded-lg shadow-md overflow-y-auto">
-        <h2 className="text-2xl font-bold mb-4">{contract.fileName}</h2>
-        <p className="mb-1">
-          <span className="font-semibold">Status:</span> {contract.status}
-        </p>
-        <p className="text-sm text-gray-500 mb-6">
-          Uploaded on: {new Date(contract.uploadedAt).toLocaleString()}
-        </p>
-
-        <hr className="my-6" />
-
-        <div>
-          <h3 className="text-xl font-semibold mb-4">Analysis</h3>
-          {analysis ? (
-            <AnalysisReport analysis={analysis} />
-          ) : contract.status === 'uploaded' || contract.status === 'failed' ? (
-            <div>
-              <p className="mb-4">
-                This contract has not been analyzed yet.
-              </p>
-              <button
-                onClick={handleRunAnalysis}
-                disabled={isAnalyzing}
-                className="bg-blue-500 text-white px-4 py-2 rounded disabled:bg-blue-300"
-              >
-                {isAnalyzing ? "Starting Analysis..." : "Run Analysis"}
-              </button>
-            </div>
-          ) : (
-            <p>Analysis is currently in progress...</p>
-          )}
+      {/* Analysis Details - Only show when analysis is available */}
+      {analysis && (
+        <div className="bg-white p-6 rounded-lg shadow-md overflow-y-auto">
+          <h2 className="text-2xl font-bold mb-4 text-gray-500">Analysis Results</h2>
+          <AnalysisReport analysis={analysis} />
         </div>
-      </div>
+      )}
+
+      {/* Contract Details - Show when no analysis or when analysis is not completed */}
+      {(!analysis || contract.status !== 'completed') && (
+        <div className="bg-white p-6 rounded-lg shadow-md overflow-y-auto ">
+          <h2 className="text-2xl font-bold mb-4 text-gray-500">{contract.fileName}</h2>
+          <p className="mb-1">
+            <span className="font-semibold">Status:</span> {contract.status}
+          </p>
+          <p className="text-sm text-gray-500 mb-6">
+            Uploaded on: {new Date(contract.uploadedAt).toLocaleString()}
+          </p>
+
+          <hr className="my-6" />
+
+          <div>
+            <h3 className="text-xl font-semibold mb-4">Analysis</h3>
+            {contract.status === 'uploaded' || contract.status === 'failed' ? (
+              <div>
+                <p className="mb-4">
+                  This contract has not been analyzed yet.
+                </p>
+                <button
+                  onClick={handleRunAnalysis}
+                  disabled={isAnalyzing}
+                  className="bg-blue-500 text-white px-4 py-2 rounded disabled:bg-blue-300"
+                >
+                  {isAnalyzing ? "Starting Analysis..." : "Run Analysis"}
+                </button>
+              </div>
+            ) : (
+              <p>Analysis is currently in progress...</p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

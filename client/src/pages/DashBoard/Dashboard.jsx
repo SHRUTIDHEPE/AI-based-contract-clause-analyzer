@@ -57,7 +57,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
         <div className="bg-white shadow rounded-xl p-6">
           <h3 className="text-xl from-neutral-700 text-gray-500">Recent Uploaded Contracts</h3>
-          <div className="space-y-3">
+          <div className="space-y-3 text-blue-600">
             {loading && <p>Loading...</p>}
             {error && <p className="text-red-500">{error}</p>}
             {!loading && !error && recentContracts.length > 0

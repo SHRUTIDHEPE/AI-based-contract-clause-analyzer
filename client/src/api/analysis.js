@@ -5,3 +5,6 @@ export const runAnalysis = (id) =>
 
 export const getAnalysis = (id) =>
   axios.get(`/analysis/${id}`);
+
+export const getAnalysisByContract = (contractId) =>
+  axios.get(`/analysis/contract/${contractId}`);

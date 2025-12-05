@@ -96,21 +96,21 @@ export default function Profile() {
     <div className="space-y-12">
       {/* User Info and Stats */}
       <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold mb-4">
+        <h2 className="text-2xl font-bold mb-4 text-gray-700">
           Welcome, {user.username}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <p className="text-sm text-gray-500">Full Name</p>
-            <p>{user.fullName}</p>
+            <p className="text-sm text-gray-700">Full Name</p>
+            <p className="text-gray-500">{user.fullName}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Email</p>
-            <p>{user.email}</p>
+            <p className="text-sm text-gray-700">Email</p>
+            <p className="text-gray-500">{user.email}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Member Since</p>
-            <p>{new Date(user.createdAt).toLocaleDateString()}</p>
+            <p className="text-sm text-gray-700">Member Since</p>
+            <p className="text-gray-500">{new Date(user.createdAt).toLocaleDateString()}</p>
           </div>
           {statsLoading ? (
             <p>Loading stats...</p>
@@ -118,12 +118,12 @@ export default function Profile() {
             stats && (
               <>
                 <div>
-                  <p className="text-sm text-gray-500">Total Contracts</p>
-                  <p>{stats.totalContracts}</p>
+                  <p className="text-sm text-gray-700">Total Contracts</p>
+                  <p className="text-gray-500">{stats.totalContracts}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Last Upload</p>
-                  <p>
+                  <p className="text-sm text-gray-700">Last Upload</p>
+                  <p className="text-gray-500">
                     {stats.lastUpload
                       ? new Date(stats.lastUpload).toLocaleString()
                       : "N/A"}
@@ -137,11 +137,11 @@ export default function Profile() {
 
       {/* Update Profile Form */}
       <div className="bg-white p-6 rounded-lg shadow-md">
-        <h3 className="text-xl font-semibold mb-4">Update Profile</h3>
+        <h3 className="text-xl font-semibold mb-4 text-gray-700">Update Profile</h3>
         <form onSubmit={handleDetailsSubmit} className="space-y-4">
           {detailsError && <p className="text-red-500">{detailsError}</p>}
           {detailsSuccess && <p className="text-green-500">{detailsSuccess}</p>}
-          <div className="flex flex-col">
+          <div className="flex flex-col text-gray-700">
             <label htmlFor="fullName">Full Name</label>
             <input
               type="text"
@@ -149,10 +149,10 @@ export default function Profile() {
               id="fullName"
               value={details.fullName}
               onChange={handleDetailsChange}
-              className="border rounded p-2"
+              className="border rounded p-2 text-gray-700"
             />
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col text-gray-700">
             <label htmlFor="email">Email</label>
             <input
               type="email"
@@ -175,11 +175,11 @@ export default function Profile() {
 
       {/* Change Password Form */}
       <div className="bg-white p-6 rounded-lg shadow-md">
-        <h3 className="text-xl font-semibold mb-4">Change Password</h3>
+        <h3 className="text-xl font-semibold mb-4 text-gray-700">Change Password</h3>
         <form onSubmit={handlePasswordSubmit} className="space-y-4">
           {passwordError && <p className="text-red-500">{passwordError}</p>}
           {passwordSuccess && <p className="text-green-500">{passwordSuccess}</p>}
-          <div className="flex flex-col">
+          <div className="flex flex-col text-gray-700">
             <label htmlFor="oldPassword">Old Password</label>
             <input
               type="password"
@@ -191,7 +191,7 @@ export default function Profile() {
               required
             />
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col text-gray-700">
             <label htmlFor="newPassword">New Password</label>
             <input
               type="password"
