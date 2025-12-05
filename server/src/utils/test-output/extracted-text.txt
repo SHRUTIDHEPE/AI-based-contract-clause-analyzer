@@ -1,0 +1,56 @@
+
+
+**SAMPLE SERVICE AGREEMENT (INTENTIONALLY FAULTY – FOR TESTING PURPOSES
+ONLY)**
+This Service Agreement (“Agreement”) is entered into on ____________ between:
+1. NovaEdge Technologies (“Client”), located at _____________________
+2. Orion DataWorks (“Provider”), located at ________________________
+The parties hereby agree as follows:
+---
+### 1. Definitions
+“Services” shall mean the tasks described somewhere in this Agreement.
+---
+### 2. Scope of Services
+Provider shall perform analytics integration, deployment activities, and other tasks as needed by
+Client. Additional work may be included without formal change approval upon verbal request.
+Deliverables shall be submitted periodically.
+---
+### 3. Fees & Compensation
+Client shall pay Provider a fee discussed earlier. Payment schedule will follow future mutual
+discussion. Additional expenses may be charged when required.
+---
+### 4. Intellectual Property
+All IP will belong to the appropriate owner. Client may use Provider’s tools for certain purposes.
+Provider may use Client’s data for improvements.
+---
+### 5. Confidentiality
+Both parties acknowledge confidential matters and will handle information suitably, as per
+understanding between them.
+
+---
+### 6. Term & Termination
+This Agreement begins immediately and ends based on mutual understanding. Termination may
+occur without specifying the method of notice.
+---
+### 7. Warranty
+Provider offers reasonable assurances that services may achieve expected standards. Remedies
+will be provided when feasible.
+---
+### 8. Indemnification
+Each party agrees to indemnify the other party for issues arising from obligations herein, to the
+extent appropriate.
+---
+### 9. Governing Law
+This Agreement shall follow the applicable laws relevant to the transaction.
+---
+### 10. Dispute Resolution
+Parties will discuss any disagreements and may explore further steps later if required.
+---
+### 11. Entire Agreement
+This Agreement, along with referenced materials and discussions, shall represent understanding
+between parties.
+---
+### SIGNATURES
+Client Representative: __________________________
+
+Provider Representative: _________________________

@@ -73,7 +73,7 @@ export default function Notifications() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-6 text-gray-800">
         <h2 className="text-2xl font-bold">Notifications</h2>
         <button
           onClick={handleMarkAllRead}
@@ -93,7 +93,7 @@ export default function Notifications() {
               }`}
             >
               <div>
-                <p className={!n.isRead ? "font-bold" : ""}>{n.message}</p>
+                <p className={!n.isRead ? "font-bold text-gray-500" : "text-gray-500"}>{n.message}</p>
                 <p className="text-sm text-gray-500">
                   {new Date(n.createdAt).toLocaleString()}
                 </p>

@@ -1,5 +1,4 @@
-// server/src/models/Analysis.js
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const ResultSchema = new mongoose.Schema(
   {
@@ -29,6 +28,20 @@ const ResultSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const DriftSchema = new mongoose.Schema(
+  {
+    drift: Boolean,
+    driftScore: Number,
+    driftType: {
+      type: String,
+      enum: ["none", "minor", "major"],
+      default: "none",
+    },
+    driftDetails: String,
+  },
+  { _id: false }
+);
+
 const AnalysisSchema = new mongoose.Schema({
   contractId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -37,8 +50,35 @@ const AnalysisSchema = new mongoose.Schema({
     index: true,
   },
 
-  clauses: [String], // raw extracted clauses
+  status: {
+    type: String,
+    enum: ["processing", "completed", "failed"],
+    default: "processing",
+  },
 
+  summary: {
+    type: String,
+    default: "",
+  },
+
+  overallRiskScore: {
+    type: Number,
+    default: 0,
+  },
+
+  clauses: [{
+    clause: String,
+    label: String,
+    confidence: Number,
+    riskScore: Number,
+    drift: DriftSchema,
+  }], // analysis results for each clause
+
+  completedAt: {
+    type: Date,
+  },
+
+  // Legacy fields for backward compatibility
   results: {
     type: [ResultSchema],
     default: [],
@@ -57,4 +97,4 @@ const AnalysisSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("Analysis", AnalysisSchema);
+export const Analysis = mongoose.model("Analysis", AnalysisSchema);

@@ -1,56 +1,50 @@
-// server/src/services/analysis/riskEngine.js
+const LABEL_MAPPING = {
+    0: "Default",
+    5: "Governing Law",
+    8: "Non-Compete",
+    12: "Limitation of Liability",
+    15: "Payment Terms",
+    23: "Indemnification",
+    33: "Confidentiality",
+    48: "Termination for Cause",
+    100: "Error"
+};
 
-// TODO: fill real label names from your training config
-const LABELS = [
-  // index -> label name mapping, e.g.:
-  // "Other_0", "Termination", "Payment", ...
-];
+const RISK_MAPPING = {
+    "Termination for Cause": 80,
+    "Limitation of Liability": 70,
+    "Indemnification": 60,
+    "Confidentiality": 50,
+    "Governing Law": 20,
+    "Payment Terms": 40,
+    "Non-Compete": 90,
+    "Default": 0,
+    "Error": 100,
+    "UNKNOWN": 10
+};
 
-const HIGH_RISK_LABELS = new Set([
-  "Termination",
-  "Liability",
-  "Indemnity",
-  "IP Ownership",
-  "Limitation of Liability",
-]);
+export const mapIndexToLabel = (index) => {
+    return LABEL_MAPPING[index] || "UNKNOWN";
+};
 
-const MEDIUM_RISK_LABELS = new Set([
-  "Payment Terms",
-  "Confidentiality",
-  "Governing Law",
-]);
+export const computeClauseRisk = (label, confidence) => {
+    const baseRisk = RISK_MAPPING[label] || 10;
+    const riskScore = baseRisk + (100 - baseRisk) * (1 - confidence);
+    let riskLevel;
+    if (riskScore > 75) {
+        riskLevel = "high";
+    } else if (riskScore > 40) {
+        riskLevel = "medium";
+    } else {
+        riskLevel = "low";
+    }
+    return { riskScore, riskLevel };
+};
 
-function mapIndexToLabel(idx) {
-  return LABELS[idx] || `LABEL_${idx}`;
-}
-
-function computeClauseRisk(label, maxProb) {
-  let base = 0.3;
-
-  if (HIGH_RISK_LABELS.has(label)) base = 0.75;
-  else if (MEDIUM_RISK_LABELS.has(label)) base = 0.5;
-
-  const confidenceBoost = (maxProb - 0.5) * 0.5; // from -0.25 to +0.25
-  let score = base + confidenceBoost;
-  score = Math.min(Math.max(score, 0), 1);
-
-  const riskScore = Math.round(score * 100);
-
-  let riskLevel = "Low";
-  if (riskScore >= 70) riskLevel = "High";
-  else if (riskScore >= 40) riskLevel = "Medium";
-
-  return { riskScore, riskLevel };
-}
-
-function aggregateContractRisk(results) {
-  if (!results || results.length === 0) return 0;
-  const sum = results.reduce((acc, r) => acc + (r.riskScore || 0), 0);
-  return Math.round(sum / results.length);
-}
-
-module.exports = {
-  mapIndexToLabel,
-  computeClauseRisk,
-  aggregateContractRisk,
+export const aggregateContractRisk = (results) => {
+    if (!results || results.length === 0) {
+        return 0;
+    }
+    const totalRisk = results.reduce((acc, result) => acc + result.riskScore, 0);
+    return totalRisk / results.length;
 };

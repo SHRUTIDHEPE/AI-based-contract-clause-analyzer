@@ -1,14 +1,13 @@
-// server/src/utils/pdfExtractor.js
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
 const pdfParse = require("pdf-parse");
 
-async function extractTextFromPdfBuffer(pdfBuffer) {
+export const extractText = async (pdfBuffer) => {
   try {
     const data = await pdfParse(pdfBuffer);
     return data.text || "";
   } catch (err) {
-    console.error("extractTextFromPdfBuffer error:", err.message);
+    console.error("extractText error:", err);
     return "";
   }
-}
-
-module.exports = { extractTextFromPdfBuffer };
+};
