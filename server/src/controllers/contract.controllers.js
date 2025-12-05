@@ -101,9 +101,10 @@ const getUserContracts = asyncHandler(async (req, res) => {
 // =============================
 const getContractById = asyncHandler(async (req, res) => {
     const contractId = new mongoose.Types.ObjectId(req.params.contractId);
+    const userId = req.user._id;
 
     const pipeline = [
-        { $match: { _id: contractId } },
+        { $match: { _id: contractId, uploadedBy: userId } },
         {
             $lookup: {
                 from: "users",
@@ -128,15 +129,15 @@ const getContractById = asyncHandler(async (req, res) => {
     const result = await Contract.aggregate(pipeline);
 
     if (result.length === 0) {
-        throw new apiError(404, "Contract not found");
+        throw new apiError(404, "Contract not found or unauthorized");
     }
 
     //  AUDIT LOG (view contract)
-    await createAuditLog({
-        userId: req.user._id,
-        action: "view_report",
-        details: `Viewed contract details for ${req.params.contractId}`
-    });
+    await createAuditLog(
+        req.user._id,
+        "view_report",
+        `Viewed contract details for ${req.params.contractId}`
+    );
 
     return res.status(200).json(
         new apiResponse(200, result[0], "Contract details fetched successfully")
@@ -161,11 +162,11 @@ const deleteContract = asyncHandler(async (req, res) => {
     await contract.deleteOne();
 
     //  AUDIT LOG
-    await createAuditLog({
-        userId: req.user._id,
-        action: "delete",
-        details: `Deleted contract ${contract.fileName}`
-    });
+    await createAuditLog(
+        req.user._id,
+        "delete",
+        `Deleted contract ${contract.fileName}`
+    );
 
     return res
         .status(200)

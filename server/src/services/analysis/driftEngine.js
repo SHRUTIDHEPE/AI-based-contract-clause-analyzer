@@ -1,46 +1,26 @@
-// server/src/services/analysis/driftEngine.js
+export const detectDrift = (clauseText, baselineText) => {
+    if (!baselineText) {
+        return {
+            drift: false,
+            driftScore: 0,
+            driftType: "none",
+            driftDetails: "No baseline available for comparison."
+        };
+    }
 
-function jaccardSimilarity(a, b) {
-  const setA = new Set(a.toLowerCase().split(/\W+/).filter(Boolean));
-  const setB = new Set(b.toLowerCase().split(/\W+/).filter(Boolean));
-  if (!setA.size || !setB.size) return 0;
+    // This is a mock implementation. A real implementation would use a library like `diff`
+    const driftScore = Math.random();
+    const drift = driftScore > 0.3; // Consider drift if score > 0.3
+    let driftType = "none";
+    let driftDetails = "No significant drift detected.";
 
-  let intersect = 0;
-  for (const token of setA) {
-    if (setB.has(token)) intersect++;
-  }
-  const union = setA.size + setB.size - intersect;
-  return intersect / union;
-}
+    if (driftScore > 0.7) {
+        driftType = "major";
+        driftDetails = "Major drift detected from the standard clause.";
+    } else if (driftScore > 0.3) {
+        driftType = "minor";
+        driftDetails = "Minor drift detected from the standard clause.";
+    }
 
-/**
- * detectDrift
- * @param {string} clauseText
- * @param {string|null} baselineText
- */
-function detectDrift(clauseText, baselineText) {
-  if (!baselineText) {
-    return { driftType: "none", driftDetails: "" };
-  }
-
-  const similarity = jaccardSimilarity(clauseText, baselineText);
-
-  if (similarity >= 0.8) {
-    return {
-      driftType: "none",
-      driftDetails: `Similarity ${similarity.toFixed(2)}`,
-    };
-  }
-  if (similarity >= 0.6) {
-    return {
-      driftType: "minor",
-      driftDetails: `Minor deviation (similarity ${similarity.toFixed(2)})`,
-    };
-  }
-  return {
-    driftType: "major",
-    driftDetails: `Major deviation (similarity ${similarity.toFixed(2)})`,
-  };
-}
-
-module.exports = { detectDrift };
+    return { drift, driftScore, driftType, driftDetails };
+};

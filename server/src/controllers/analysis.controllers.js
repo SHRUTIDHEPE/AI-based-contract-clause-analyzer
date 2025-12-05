@@ -1,61 +1,46 @@
-// server/src/controllers/analysis.controllers.js
-const Analysis = require("../models/Analysis");
-const { runAnalysisForContract } = require("../services/analysis/analysisService");
-const { buildPagination } = require("../utils/pagination");
+import mongoose from "mongoose";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { apiResponse } from "../utils/apiResponse.js";
+import { analyzeContract } from "../services/analysis.service.js";
+import { Analysis } from "../models/analysis.models.js";
+import { apiError } from "../utils/apiError.js";
 
-// you probably already have something like asyncHandler & buildSuccessResponse;
-// adjust imports to match your project helpers.
-const asyncHandler = require("../utils/asyncHandler");
-const { buildSuccessResponse } = require("../utils/apiResponse");
-
-// POST /api/analysis/run/:contractId
-exports.runAnalysis = asyncHandler(async (req, res) => {
+const runAnalysis = asyncHandler(async (req, res) => {
   const { contractId } = req.params;
-  const userId = req.user?._id; // assuming auth middleware
 
-  const { analysis, summary } = await runAnalysisForContract(contractId, userId);
+  const analysis = await analyzeContract(contractId, req.user.id);
 
-  return res.status(200).json(
-    buildSuccessResponse("Analysis completed", {
-      analysisId: analysis._id,
-      summary,
-    })
-  );
+  return res
+    .status(200)
+    .json(new apiResponse(200, analysis, "Analysis completed successfully"));
 });
 
-// GET /api/analysis/contract/:contractId
-exports.getAnalysisByContract = asyncHandler(async (req, res) => {
-  const { contractId } = req.params;
+const getAnalysis = asyncHandler(async (req, res) => {
+  const { analysisId } = req.params;
 
-  const analysis = await Analysis.findOne({ contractId });
+  const analysis = await Analysis.findById(analysisId);
+
   if (!analysis) {
-    return res.status(404).json({ message: "Analysis not found" });
+    throw new apiError(404, "Analysis not found");
   }
 
   return res
     .status(200)
-    .json(buildSuccessResponse("Analysis fetched", analysis));
+    .json(new apiResponse(200, analysis, "Analysis fetched successfully"));
 });
 
-// GET /api/analysis/:analysisId/clauses?page=&limit=
-exports.getClauseResultsPaginated = asyncHandler(async (req, res) => {
-  const { analysisId } = req.params;
-  const { page = 1, limit = 10 } = req.query;
+const getAnalysisByContract = asyncHandler(async (req, res) => {
+  const { contractId } = req.params;
 
-  const analysis = await Analysis.findById(analysisId, { results: 1 });
+  const analysis = await Analysis.findOne({ contractId });
+
   if (!analysis) {
-    return res.status(404).json({ message: "Analysis not found" });
+    throw new apiError(404, "Analysis not found for this contract");
   }
 
-  const { docs, pagination } = buildPagination(analysis.results, {
-    page: Number(page),
-    limit: Number(limit),
-  });
-
-  return res.status(200).json(
-    buildSuccessResponse("Clause results fetched", {
-      clauses: docs,
-      pagination,
-    })
-  );
+  return res
+    .status(200)
+    .json(new apiResponse(200, analysis, "Analysis fetched successfully"));
 });
+
+export { runAnalysis, getAnalysis, getAnalysisByContract };

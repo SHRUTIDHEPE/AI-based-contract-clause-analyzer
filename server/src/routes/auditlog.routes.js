@@ -7,7 +7,7 @@ import {
 
 const router = Router();
 
-router.get("/my-logs", verifyJWT, getUserAuditLogs);
+router.get("/logs", verifyJWT, getUserAuditLogs);
 router.delete("/clear", verifyJWT, clearAuditLogs);
 
 export default router;

@@ -1,69 +1,105 @@
-// server/utils/clauseSplitter.js
+/**
+ * FINAL — Highly Accurate Contract Clause Splitter
+ * Handles:
+ *  - Markdown headings: ### 1. Title
+ *  - Numbered sections: 1., 2., 3.
+ *  - HR separators: ---
+ *  - Long clause fallback splitting
+ */
+
 function normalizeText(text) {
   return text
-    .replace(/\r\n/g, '\n')
-    .replace(/\u00A0/g, ' ')
-    .replace(/\t+/g, ' ')
-    .replace(/\n[ \t]*/g, '\n')
+    .replace(/\r\n/g, "\n")
+    .replace(/\u00A0/g, " ")
+    .replace(/\t+/g, " ")
+    .replace(/[ ]{2,}/g, " ")
+    .replace(/\n[ \t]+/g, "\n")
     .trim();
 }
 
-function splitByParagraphs(text) {
-  return text.split(/\n{2,}/).map(p => p.trim()).filter(Boolean);
+/**
+ * Split at reliable major boundaries:
+ *   - "---"
+ *   - headings like "### 1. Title"
+ *   - top-level "1." etc.
+ */
+function hardSplit(text) {
+  return text
+    .split(
+      /(?=^---$)|(?=^###\s*\d+)|(?=^\d+\.)/gm
+    )
+    .map(s => s.trim())
+    .filter(Boolean);
 }
 
-function splitByNumberedHeadings(para) {
-  return para.split(/(?=\n?\s*\d+[\.\)]\s+)/).map(p => p.trim()).filter(Boolean);
+/**
+ * Fallback splitting for extremely long blocks
+ */
+function sentenceSplit(text) {
+  const s = text.match(/[^.!?]+[.!?]+/g) || [text];
+  return s.map(t => t.trim()).filter(Boolean);
 }
 
-function sentenceSplit(paragraph) {
-  const sentences = paragraph.match(/[^\.!\?]+[\.!\?]+/g) || [paragraph];
-  return sentences.map(s => s.trim()).filter(Boolean);
-}
-
-function mergeShortFragments(fragments, minWords = 6) {
+/**
+ * Merge short fragments into meaningful clauses
+ */
+function mergeShort(fragments, minWords = 20) {
   const out = [];
-  let buffer = '';
+  let buf = "";
+
   for (const f of fragments) {
-    const words = f.split(/\s+/).filter(Boolean).length;
-    if (!buffer) {
-      buffer = f;
-    } else if (words < minWords) {
-      buffer = buffer + ' ' + f;
+    const wc = f.split(/\s+/).length;
+
+    if (!buf) {
+      buf = f;
+    } else if (wc < minWords) {
+      buf += " " + f;
     } else {
-      out.push(buffer);
-      buffer = f;
+      out.push(buf);
+      buf = f;
     }
   }
-  if (buffer) out.push(buffer);
+  if (buf) out.push(buf);
   return out;
 }
 
-function splitIntoClauses(text) {
+/**
+ * MAIN CLAUSE SPLITTER
+ */
+export function splitIntoClauses(text) {
   const norm = normalizeText(text);
-  const paras = splitByParagraphs(norm);
+
+  // 1) Hard split by headings + rules + numbering
+  let blocks = hardSplit(norm);
+
+  // 2) Deep clean-up
   let clauses = [];
 
-  for (const p of paras) {
-    const parts = splitByNumberedHeadings(p);
-    for (const part of parts) {
-      if (part.split(/\s+/).length > 300) {
-        const sents = sentenceSplit(part);
-        const merged = mergeShortFragments(sents, 8);
-        clauses.push(...merged);
-      } else {
-        clauses.push(part);
-      }
+  for (let block of blocks) {
+    const wc = block.split(/\s+/).length;
+
+    if (wc > 250) {
+      // break long blocks into smaller clauses
+      const sents = sentenceSplit(block);
+      const merged = mergeShort(sents, 25);
+      clauses.push(...merged);
+    } else {
+      clauses.push(block);
     }
   }
 
-  clauses = clauses.map(c => c.replace(/\s+/g, ' ').trim())
-                   .filter(c => {
-                     const words = c.split(/\s+/).filter(Boolean).length;
-                     return words >= 3 && words <= 1200;
-                   });
+  // 3) Final filtering
+  // return clauses
+  //   .map(c => c.replace(/\s+/g, " ").trim())
+  //   .filter(c => c.length > 15);
 
-  return clauses;
+  return clauses
+  .map(c =>
+    c
+      .replace(/^---+/g, "")
+      .replace(/^###\s*/g, "")
+      .trim()
+  )
+  .filter(c => c.length > 10);
+
 }
-
-module.exports = { splitIntoClauses };

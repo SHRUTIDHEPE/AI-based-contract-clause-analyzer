@@ -19,9 +19,7 @@ router
   .post(verifyJWT, upload.single("contractFile"), uploadContract);
 
 //  Get paginated list of logged-in user's contracts
-router
-  .route("/my-contracts")
-  .get(verifyJWT, getUserContracts);
+router.route("/mine").get(verifyJWT, getUserContracts);
 
 //  Get a specific contract with full details
 router

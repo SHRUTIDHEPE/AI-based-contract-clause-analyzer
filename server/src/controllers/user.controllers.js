@@ -89,6 +89,8 @@ const loginUser = asyncHandler(async (req, res) => {
   const options = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    domain: "localhost",
   };
 
   const loggedInUser = await User.findById(user._id).select(
@@ -103,7 +105,7 @@ const loginUser = asyncHandler(async (req, res) => {
     .cookie("accessToken", accessToken, options)
     .cookie("refreshToken", refreshToken, options)
     .json(
-      new apiResponse(200, { user: loggedInUser }, "Login successful")
+      new apiResponse(200, { user: loggedInUser, accessToken, refreshToken }, "Login successful")
     );
 });
 
@@ -131,10 +133,12 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       user._id
     );
 
-    const options = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-    };
+  const options = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    domain: "localhost",
+  };
 
   //  AUDIT LOG
   await createAuditLog(user._id, "login", `Username ${user.username} refreshed access token`);

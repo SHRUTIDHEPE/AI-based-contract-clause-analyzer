@@ -1,17 +1,11 @@
-// server/src/routes/analysis.routes.js
-const express = require("express");
-const router = express.Router();
+import { Router } from "express";
+import { verifyJWT } from "../middlewares/auth.middlewares.js";
+import { runAnalysis, getAnalysis, getAnalysisByContract } from "../controllers/analysis.controllers.js";
 
-const analysisController = require("../controllers/analysis.controllers");
-const auth = require("../middlewares/auth.middlewares");
+const router = Router();
 
-// run full analysis for a contract
-router.post("/run/:contractId", auth, analysisController.runAnalysis);
+router.route("/run/:contractId").post(verifyJWT, runAnalysis);
+router.route("/:analysisId").get(verifyJWT, getAnalysis);
+router.route("/contract/:contractId").get(verifyJWT, getAnalysisByContract);
 
-// get analysis summary & details for contract
-router.get("/contract/:contractId", auth, analysisController.getAnalysisByContract);
-
-// get paginated clause-level results
-router.get("/:analysisId/clauses", auth, analysisController.getClauseResultsPaginated);
-
-module.exports = router;
+export default router;
