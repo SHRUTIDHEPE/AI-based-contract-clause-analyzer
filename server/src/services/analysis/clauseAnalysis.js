@@ -32,6 +32,7 @@ async function analyzeClauses(clauses) {
       probabilities: [],
       riskScore: 10,
       riskLevel: "Low",
+      driftScore: 0,
       driftType: "none",
       driftDetails: "ML server unavailable",
       explanation: "ML model not reachable; default low-risk classification.",
@@ -56,12 +57,22 @@ async function analyzeClauses(clauses) {
     const labelIndex = pred?.label ?? -1;
     const probs = pred?.probabilities || [];
     const maxProb = probs.length ? Math.max(...probs) : 0;
-    const label = mapIndexToLabel(labelIndex);
+    const label = pred?.clause_type || mapIndexToLabel(labelIndex); // Use clause_type from ML if available
+    const confidence = pred?.confidence ?? maxProb;
+    const riskScoreFromML = pred?.risk_score;
 
-    const { riskScore, riskLevel } = computeClauseRisk(label, maxProb);
+    const { riskScore } = computeClauseRisk(label, confidence, clauseText, riskScoreFromML);
+    let riskLevel;
+    if (riskScore > 75) {
+        riskLevel = "High";
+    } else if (riskScore > 40) {
+        riskLevel = "Medium";
+    } else {
+        riskLevel = "Low";
+    }
 
     const baselineText = await getBaselineClauseFor(label);
-    const { driftType, driftDetails } = detectDrift(clauseText, baselineText);
+    const { drift, driftScore, driftType, driftDetails } = detectDrift(clauseText, baselineText, riskScore / 100);
 
     if (driftType === "major") maxDrift = "major";
     else if (driftType === "minor" && maxDrift === "none") maxDrift = "minor";
@@ -87,6 +98,7 @@ async function analyzeClauses(clauses) {
       probabilities: probs,
       riskScore,
       riskLevel,
+      driftScore,
       driftType,
       driftDetails,
       explanation,

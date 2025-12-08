@@ -7,130 +7,141 @@ import { detectDrift } from "./analysis/driftEngine.js";
 import { generateSummary } from "./analysis/summaryEngine.js";
 import { Analysis } from "../models/analysis.models.js";
 import { Contract } from "../models/contract.models.js";
-import {Notification} from "../models/notification.models.js";
-import {AuditLog} from "../models/auditLog.models.js";
+import { Notification } from "../models/notification.models.js";
+import { AuditLog } from "../models/auditLog.models.js";
 import { apiError } from "../utils/apiError.js";
 
-/**
- * Orchestrates the full analysis of a contract.
- *
- * @param {string} contractId - The ID of the contract to analyze.
- * @param {string} userId - The ID of the user requesting the analysis.
- * @returns {Promise<object>} The full analysis report.
- */
 export const analyzeContract = async (contractId, userId) => {
-  console.log("🔍 [analyzeContract] Starting analysis for contractId:", contractId, "userId:", userId);
+  console.log("🔍 Starting analysis for:", contractId, "user:", userId);
+
+  // ---------------------------
+  // Fetch contract
+  // ---------------------------
   const contract = await Contract.findById(contractId);
-  console.log("🔍 [analyzeContract] Contract found:", !!contract);
-  if (!contract) {
-    throw new apiError(404, "Contract not found");
-  }
+  if (!contract) throw new apiError(404, "Contract not found");
 
-  // Check if the contract belongs to the user
-  console.log("🔍 [analyzeContract] Contract uploadedBy:", contract.uploadedBy, "request userId:", userId);
-  if (contract.uploadedBy.toString() !== userId) {
+  if (contract.uploadedBy.toString() !== userId)
     throw new apiError(403, "Unauthorized to analyze this contract");
-  }
-  console.log("🔍 [analyzeContract] Ownership check passed");
 
-  // 1. Download the PDF
-  console.log("🔍 [analyzeContract] About to download PDF from:", contract.cloudinaryUrl);
+  // ---------------------------
+  // Download PDF
+  // ---------------------------
+  console.log("📥 Downloading PDF from:", contract.cloudinaryUrl);
   const pdfBuffer = await downloadPdf(contract.cloudinaryUrl);
-  if (!pdfBuffer) {
-    throw new apiError(500, "Failed to download PDF from Cloudinary");
-  }
+  if (!pdfBuffer) throw new apiError(500, "Failed to download PDF");
 
-  // 2. Extract text
-  console.log("🔍 [analyzeContract] About to extract text from PDF");
+  // ---------------------------
+  // Extract Text
+  // ---------------------------
   const text = await extractText(pdfBuffer);
-  console.log("🔍 [analyzeContract] Text extracted, length:", text?.length || 0);
-  if (!text || text.trim().length === 0) {
-    throw new apiError(500, "Failed to extract text from PDF - PDF may be corrupted or empty");
-  }
+  console.log("📄 Extracted text length:", text?.length ?? 0);
 
-  // 3. Split into clauses
-  console.log("🔍 [analyzeContract] About to split text into clauses");
+  if (!text || text.trim().length === 0)
+    throw new apiError(500, "Failed to extract text from PDF");
+
+  // ---------------------------
+  // Split into clauses
+  // ---------------------------
   const clauses = splitIntoClauses(text);
-  console.log("🔍 [analyzeContract] Clauses split, count:", clauses.length);
+  console.log("✂️ Split into clauses:", clauses.length);
 
-  // 4. Send clauses to ML server for batch prediction
-  console.log("🔍 [analyzeContract] About to send clauses to ML server");
+  if (clauses.length === 0)
+    throw new apiError(500, "No clauses found in the document");
+
+  // ---------------------------
+  // Predict using ML server
+  // ---------------------------
+  console.log("🤖 Sending clauses to ML server...");
   const predictions = await predictClauses(clauses);
-  console.log("🔍 [analyzeContract] Predictions received from ML server");
+  console.log("🤖 Predictions received:", predictions.length);
 
-  // 5, 6, 7. Analyze each clause
-  console.log("🔍 [analyzeContract] About to analyze each clause");
+  if (!predictions || predictions.length !== clauses.length)
+    throw new apiError(500, "ML server returned invalid predictions");
+
+  // ---------------------------
+  // Build clause-by-clause analysis
+  // ---------------------------
   const analysisResults = clauses.map((clauseText, index) => {
-    const prediction = predictions[index];
-    const confidence = Math.max(...prediction.probabilities);
-    const { riskScore } = computeClauseRisk(prediction.label, confidence);
+    const pred = predictions[index];
+
+    if (!pred) {
+      console.warn("⚠ Missing prediction at index:", index);
+      return {
+        clause: clauseText,
+        label: "UNKNOWN",
+        confidence: 0,
+        riskScore: 0,
+        drift: {},
+      };
+    }
+
+    // Extract model output
+    const clauseType = pred.clause_type;
+    const confidence = pred.confidence;
+
+    // Use risk score from ML service if available, otherwise compute
+    const { riskScore } = computeClauseRisk(clauseType, confidence, clauseText, pred.risk_score);
+
     const drift = detectDrift(clauseText);
 
     const result = {
       clause: clauseText,
-      label: prediction.label.toString(),
-      confidence: isNaN(confidence) ? 0 : confidence,
-      riskScore: isNaN(riskScore) ? 0 : riskScore,
+      label: clauseType,
+      confidence: confidence || 0,
+      riskScore: riskScore || 0,
       drift,
     };
-    console.log(`🔍 [analyzeContract] Clause ${index} result:`, result);
+
+    console.log(`🔎 Clause ${index}:`, result);
     return result;
   });
-  console.log("🔍 [analyzeContract] All clauses analyzed, results count:", analysisResults.length);
 
-  // 8. Generate summary
-  console.log("🔍 [analyzeContract] About to generate summary");
+  // ---------------------------
+  // Summary + overall score
+  // ---------------------------
   const summary = generateSummary(analysisResults);
-  console.log("🔍 [analyzeContract] Summary generated");
 
-  const validRiskScores = analysisResults.filter(r => !isNaN(r.riskScore));
-  const overallRiskScore = validRiskScores.length > 0
-    ? validRiskScores.reduce((acc, r) => acc + r.riskScore, 0) / validRiskScores.length
-    : 0;
-  console.log("🔍 [analyzeContract] Overall risk score calculated:", overallRiskScore);
+  const validScores = analysisResults.map(r => r.riskScore).filter(x => !isNaN(x));
+  const overallRiskScore =
+    validScores.reduce((a, b) => a + b, 0) / validScores.length;
 
-  // 9. Store results in the database
-  console.log("🔍 [analyzeContract] About to store analysis in database");
+  console.log("📊 Overall risk score:", overallRiskScore);
+
+  // ---------------------------
+  // Save analysis
+  // ---------------------------
   const analysis = await Analysis.create({
     contractId,
     status: "completed",
     summary,
-    overallRiskScore: overallRiskScore,
+    overallRiskScore,
     clauses: analysisResults,
     completedAt: new Date(),
   });
-  console.log("🔍 [analyzeContract] Analysis stored in database, id:", analysis._id);
 
-  // Update contract status
-  console.log("🔍 [analyzeContract] About to update contract status");
+  // Update contract
   contract.status = "completed";
   await contract.save();
-  console.log("🔍 [analyzeContract] Contract status updated");
 
-  // Create notification if high risk
+  // High-risk notification
   if (overallRiskScore >= 70) {
-    console.log("🔍 [analyzeContract] Creating high-risk notification");
     await Notification.create({
       userId,
       contractId,
       analysisId: analysis._id,
-      message: `High-risk contract detected (score ${overallRiskScore}).`,
+      message: `High-risk contract detected (Score ${overallRiskScore}).`,
       isRead: false,
       createdAt: new Date(),
     });
-    console.log("🔍 [analyzeContract] High-risk notification created");
   }
 
-  // Create audit log
-  console.log("🔍 [analyzeContract] Creating audit log");
+  // Audit log
   await AuditLog.create({
     userId,
     action: "analyse",
     details: `Ran analysis for contract ${contractId}`,
     timestamp: new Date(),
   });
-  console.log("🔍 [analyzeContract] Audit log created");
 
-  console.log("🔍 [analyzeContract] Analysis completed successfully");
   return analysis;
 };

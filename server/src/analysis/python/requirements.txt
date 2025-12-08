@@ -1,0 +1,5 @@
+torch
+transformers
+pdfplumber
+protobuf
+python-multipart

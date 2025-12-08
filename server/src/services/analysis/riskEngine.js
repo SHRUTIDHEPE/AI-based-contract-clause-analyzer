@@ -1,50 +1,38 @@
-const LABEL_MAPPING = {
-    0: "Default",
-    5: "Governing Law",
-    8: "Non-Compete",
-    12: "Limitation of Liability",
-    15: "Payment Terms",
-    23: "Indemnification",
-    33: "Confidentiality",
-    48: "Termination for Cause",
-    100: "Error"
-};
+import { HIGH_RISK_TYPES, MEDIUM_RISK_TYPES, LOW_RISK_TYPES, RISKY_KEYWORDS } from "./riskRules.js";
 
-const RISK_MAPPING = {
-    "Termination for Cause": 80,
-    "Limitation of Liability": 70,
-    "Indemnification": 60,
-    "Confidentiality": 50,
-    "Governing Law": 20,
-    "Payment Terms": 40,
-    "Non-Compete": 90,
-    "Default": 0,
-    "Error": 100,
-    "UNKNOWN": 10
-};
+function baseRisk(clauseType) {
+  if (HIGH_RISK_TYPES.has(clauseType)) return 0.8;
+  if (MEDIUM_RISK_TYPES.has(clauseType)) return 0.55;
+  if (LOW_RISK_TYPES.has(clauseType)) return 0.25;
+  return 0.4; // default if unknown
+}
 
-export const mapIndexToLabel = (index) => {
-    return LABEL_MAPPING[index] || "UNKNOWN";
-};
+function keywordRisk(text) {
+  const lower = text.toLowerCase();
+  let hits = 0;
 
-export const computeClauseRisk = (label, confidence) => {
-    const baseRisk = RISK_MAPPING[label] || 10;
-    const riskScore = baseRisk + (100 - baseRisk) * (1 - confidence);
-    let riskLevel;
-    if (riskScore > 75) {
-        riskLevel = "high";
-    } else if (riskScore > 40) {
-        riskLevel = "medium";
-    } else {
-        riskLevel = "low";
-    }
-    return { riskScore, riskLevel };
-};
+  for (const word of RISKY_KEYWORDS) {
+    if (lower.includes(word)) hits++;
+  }
 
-export const aggregateContractRisk = (results) => {
-    if (!results || results.length === 0) {
-        return 0;
-    }
-    const totalRisk = results.reduce((acc, result) => acc + result.riskScore, 0);
-    return totalRisk / results.length;
-};
+  return Math.min(0.6, hits * 0.15);
+}
+
+export function computeClauseRisk(clauseType, confidence, text = "", riskScoreFromML = null) {
+  // If risk score is provided by ML service, use it directly (convert to percentage)
+  if (riskScoreFromML !== null && riskScoreFromML !== undefined) {
+    return {
+      riskScore: Number((Math.max(0, Math.min(1, riskScoreFromML)) * 100).toFixed(2))
+    };
+  }
+
+  // Otherwise, compute as before
+  const risk =
+    0.6 * baseRisk(clauseType) +
+    0.25 * keywordRisk(text) +
+    0.15 * (1 - confidence);
+
+  return {
+    riskScore: Number((Math.max(0, Math.min(1, risk)) * 100).toFixed(2))
+  };
+}

@@ -20,7 +20,17 @@ const predict = async (clauses) => {
 
         const data = await response.json();
         console.log("🤖 [predict] Predictions received, count:", data.results.length);
-        return data.results;
+
+        // Transform new format to old format for compatibility
+        const transformed = data.results.map(result => ({
+            label: result.clause_type, // Use clause_type as label
+            probabilities: [result.confidence], // Single probability for now
+            clause_type: result.clause_type,
+            confidence: result.confidence,
+            risk_score: result.risk_score
+        }));
+
+        return transformed;
     } catch (error) {
         console.error("Error calling ML service:", error);
         throw new apiError(500, "Failed to get predictions from ML service");
