@@ -32,5 +32,16 @@ dist-ssr
 *.sln
 *.sw?
 
-src/analysis/python/model.pkl
+# Python virtual environments
+venv/
+**/venv/
+
+# Model files
 *.pkl
+src/analysis/python/model.pkl
+
+# Python cache folders
+__pycache__/
+**/__pycache__/
+src/analysis/python/__pycache__/
+
